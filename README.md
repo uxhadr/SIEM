@@ -55,3 +55,46 @@ The Windows 11 VM serves as the host computer, which is used to access and manag
 ![Ping Attempt Failed](https://github.com/user-attachments/assets/22de5ec7-8460-4d08-87da-b44c230b79bb)
 ![Disabled Firewall](https://github.com/user-attachments/assets/4fc4533e-b58b-4e80-9a29-a1e57ed6704f)
 ![Ping Success](https://github.com/user-attachments/assets/db77a0f3-988a-4927-807f-6a43e2373297)
+
+
+I opened Powershell ISE and added a script that monitors Windows Event Viewer for failed RDP login attempts and logs details such as the IP address, username, and timestamp. It then retrieves geolocation data for the source IP addresses using an external API and appends this information to a log file. The script continuously runs, updating the log with new events as they occur.
+<img width="1463" alt="image" src="https://github.com/user-attachments/assets/b003dd4b-5897-49a8-9f58-bc8d6dbf6e36">
+
+I ran the script and I wasn't getting any new failed login attempts so I changed the script to also show old failed login attempts that had already been created
+<img width="1418" alt="image" src="https://github.com/user-attachments/assets/af52e7da-645b-4ad2-b155-265cb968cb86">
+
+Troubleshooting: In the tutorial the creator was able to create custom logs in the log analytis workspace. Custom logs is not an option anymore so i had to use data collection rules in the agents tab. 
+<img width="1501" alt="image" src="https://github.com/user-attachments/assets/9776b35f-635c-4cb9-a593-a2c146d8d9c1">
+
+Went to add data source then I clicked on custom
+<img width="1506" alt="image" src="https://github.com/user-attachments/assets/da044c71-1ac4-45a6-948f-2d59913cd506">
+
+Opened rdp and copied the logs created from the script we ran earlier
+<img width="1467" alt="image" src="https://github.com/user-attachments/assets/e41fb443-a238-4ca5-9fbe-887c77d56c6c">
+
+I wasn't able to add custom logs from the text file due to no data collection endpoint, so I created a new Data collection endpoint
+<img width="1492" alt="image" src="https://github.com/user-attachments/assets/96d012b9-6247-4d53-a796-a008f8c80e47">
+
+It wouldn't let me create an endpoint and was giving me the following error: The subscription is not registered to use namespace 'microsoft.insights'. See https://aka.ms/rps-not-found for how to register subscriptions.
+So I had to go to my subscription settings and register Microsoft.Inisgts
+<img width="1502" alt="image" src="https://github.com/user-attachments/assets/088b25d5-3abe-4b5b-b765-e9361969e858">
+I was now able to succesfully create my data collection endpoint
+<img width="1467" alt="image" src="https://github.com/user-attachments/assets/f990c75b-6fd0-44cd-8836-26b510e07099">
+
+<img width="1495" alt="image" src="https://github.com/user-attachments/assets/e1687620-df70-4f83-b545-2f899d3f18ad">
+
+I converted the failed rdp logs text file into Json and uploaded the file to create a custom log. This will train analytics on what to look for in the log file
+<img width="1108" alt="image" src="https://github.com/user-attachments/assets/adaa12dd-b6ea-4673-bdfe-6fc732f2ed72">
+
+<img width="1461" alt="image" src="https://github.com/user-attachments/assets/a390cde4-8921-4256-bd11-f769e81dae15">
+
+Installed Microsoft Azure CLI to enable JSON after getting the following error:
+<img width="835" alt="image" src="https://github.com/user-attachments/assets/b4f76b16-1b57-486c-aec6-99d86fef8a09">
+
+<img width="923" alt="image" src="https://github.com/user-attachments/assets/335acc70-a7c7-46fa-ac09-2e377c8c83ee">
+
+logged in on the terminal
+<img width="1171" alt="image" src="https://github.com/user-attachments/assets/e539b255-8842-4940-82db-7e02a54656e5">
+
+Used a table name of a file I had already created 
+<img width="839" alt="image" src="https://github.com/user-attachments/assets/2bd2361f-0eac-435b-b80a-502dc2e7dfaa">
