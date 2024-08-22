@@ -96,5 +96,37 @@ Installed Microsoft Azure CLI to enable JSON after getting the following error:
 logged in on the terminal
 <img width="1171" alt="image" src="https://github.com/user-attachments/assets/e539b255-8842-4940-82db-7e02a54656e5">
 
-Used a table name of a file I had already created 
-<img width="839" alt="image" src="https://github.com/user-attachments/assets/2bd2361f-0eac-435b-b80a-502dc2e7dfaa">
+I used a table name of a file I had already created, 'failedrdp_CL'. The File Pattern field in the Data Collection Rule configuration is used to identify which files on the VM should be monitored for log collection. I used the file pattern 'C:\programdata\failed_rdp.log' because that's where we stored our files earlier.
+<img width="842" alt="image" src="https://github.com/user-attachments/assets/3047e053-d88e-4a7b-9f3a-74392acf27f2">
+
+I deleted the custom JSON data collection rule since i didnt need it anymore
+<img width="586" alt="image" src="https://github.com/user-attachments/assets/2cc004a9-ef58-444e-a9de-8b0209b6b830">
+
+After alot of troubleshootning I finally found a reddit post that suggested to create custom log files you go to tables and select MMA-based instead of DCR-based.
+<img width="1240" alt="image" src="https://github.com/user-attachments/assets/44388327-23fa-4ea6-8c01-b9c887577cc2">
+
+Added the path to where the log is collected on the Azure VM because that is where our powersheel script stored our logs
+<img width="1145" alt="image" src="https://github.com/user-attachments/assets/3a9810ba-54a6-41d5-8eb1-cbfd7e544c04">
+
+I ran the command in the logs query 
+<img width="1198" alt="image" src="https://github.com/user-attachments/assets/a52610f7-2fd8-42b1-9b2d-fd9612e72c35">
+
+I extra the fields from the raw data to  reate their own fields using the followin code:
+'Failedrdp_with_geo_CL
+| extend latitude = extract("latitude:(.*?),", 1, RawData),
+         longitude = extract("longitude:(.*?),", 1, RawData),
+         destinationhost = extract("destinationhost:(.*?),", 1, RawData),
+         username = extract("username:(.*?),", 1, RawData),
+         sourcehost = extract("sourcehost:(.*?),", 1, RawData),
+         state = extract("state:(.*?),", 1, RawData),
+         country = extract("country:(.*?),", 1, RawData),
+         label = extract("label:(.*?),", 1, RawData),
+         timestamp = extract("timestamp:(.*)", 1, RawData)
+| project TimeGenerated, Computer,latitude, longitude, destinationhost, username, sourcehost, state, country, label, timestamp'
+
+This is the output I received:
+<img width="962" alt="image" src="https://github.com/user-attachments/assets/138a7584-eee6-4ba2-93fa-4b4a6be83edf">
+
+
+
+
