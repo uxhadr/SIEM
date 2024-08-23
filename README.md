@@ -63,49 +63,30 @@ I opened Powershell ISE and added a script that monitors Windows Event Viewer fo
 I ran the script and I wasn't getting any new failed login attempts so I changed the script to also show old failed login attempts that had already been created
 <img width="1418" alt="image" src="https://github.com/user-attachments/assets/af52e7da-645b-4ad2-b155-265cb968cb86">
 
-Troubleshooting: In the tutorial the creator was able to create custom logs in the log analytis workspace. Custom logs is not an option anymore so i had to use data collection rules in the agents tab. 
+Below is my process troubleshooting before I finally figured out how to add custom text logs
+**Troubleshooting:** In the tutorial the creator was able to create custom logs in the log analytis workspace. Custom logs is not an option anymore so i had to use data collection rules in the agents tab. 
 <img width="1501" alt="image" src="https://github.com/user-attachments/assets/9776b35f-635c-4cb9-a593-a2c146d8d9c1">
 
 Went to add data source then I clicked on custom
-<img width="1506" alt="image" src="https://github.com/user-attachments/assets/da044c71-1ac4-45a6-948f-2d59913cd506">
-
 Opened rdp and copied the logs created from the script we ran earlier
-<img width="1467" alt="image" src="https://github.com/user-attachments/assets/e41fb443-a238-4ca5-9fbe-887c77d56c6c">
-
 I wasn't able to add custom logs from the text file due to no data collection endpoint, so I created a new Data collection endpoint
-<img width="1492" alt="image" src="https://github.com/user-attachments/assets/96d012b9-6247-4d53-a796-a008f8c80e47">
-
 It wouldn't let me create an endpoint and was giving me the following error: The subscription is not registered to use namespace 'microsoft.insights'. See https://aka.ms/rps-not-found for how to register subscriptions.
 So I had to go to my subscription settings and register Microsoft.Inisgts
 <img width="1502" alt="image" src="https://github.com/user-attachments/assets/088b25d5-3abe-4b5b-b765-e9361969e858">
 I was now able to succesfully create my data collection endpoint
 <img width="1467" alt="image" src="https://github.com/user-attachments/assets/f990c75b-6fd0-44cd-8836-26b510e07099">
-
-<img width="1495" alt="image" src="https://github.com/user-attachments/assets/e1687620-df70-4f83-b545-2f899d3f18ad">
-
 I converted the failed rdp logs text file into Json and uploaded the file to create a custom log. This will train analytics on what to look for in the log file
 <img width="1108" alt="image" src="https://github.com/user-attachments/assets/adaa12dd-b6ea-4673-bdfe-6fc732f2ed72">
-
-<img width="1461" alt="image" src="https://github.com/user-attachments/assets/a390cde4-8921-4256-bd11-f769e81dae15">
-
-Installed Microsoft Azure CLI to enable JSON after getting the following error:
-<img width="835" alt="image" src="https://github.com/user-attachments/assets/b4f76b16-1b57-486c-aec6-99d86fef8a09">
-
-<img width="923" alt="image" src="https://github.com/user-attachments/assets/335acc70-a7c7-46fa-ac09-2e377c8c83ee">
-
-logged in on the terminal
-<img width="1171" alt="image" src="https://github.com/user-attachments/assets/e539b255-8842-4940-82db-7e02a54656e5">
 
 I used a table name of a file I had already created, 'failedrdp_CL'. The File Pattern field in the Data Collection Rule configuration is used to identify which files on the VM should be monitored for log collection. I used the file pattern 'C:\programdata\failed_rdp.log' because that's where we stored our files earlier.
 <img width="842" alt="image" src="https://github.com/user-attachments/assets/3047e053-d88e-4a7b-9f3a-74392acf27f2">
 
-I deleted the custom JSON data collection rule since i didnt need it anymore
-<img width="586" alt="image" src="https://github.com/user-attachments/assets/2cc004a9-ef58-444e-a9de-8b0209b6b830">
 
+**This is after I finally saw a reddit post and realized I should have used MMA instead of DCR-based**
 After alot of troubleshootning I finally found a reddit post that suggested to create custom log files you go to tables and select MMA-based instead of DCR-based.
 <img width="1240" alt="image" src="https://github.com/user-attachments/assets/44388327-23fa-4ea6-8c01-b9c887577cc2">
 
-Added the path to where the log is collected on the Azure VM because that is where our powersheel script stored our logs
+Added the path to where the log is collected on the Azure VM because that is where our PowerShell script stored our logs
 <img width="1145" alt="image" src="https://github.com/user-attachments/assets/3a9810ba-54a6-41d5-8eb1-cbfd7e544c04">
 
 I ran the command in the logs query 
@@ -127,6 +108,27 @@ I extra the fields from the raw data to  reate their own fields using the follow
 This is the output I received:
 <img width="962" alt="image" src="https://github.com/user-attachments/assets/138a7584-eee6-4ba2-93fa-4b4a6be83edf">
 
+Went to Microsoft Sentinel and created a workbook. Used the code from earlier to create the workbook and added the following code: '| summarize event_count = count() by sourcehost, latitude, longitude, country, label, destinationhost
+| where destinationhost != "samplehost" 
+| where sourcehost != "" '
+
+I changed the visualization to view by map. In the map settings I change the Metric label to label, and the Metric Value to latitude.
+<img width="1473" alt="image" src="https://github.com/user-attachments/assets/8674776e-aeae-4e16-9c80-01b58330501e">
+
+Changed the Metric Value to event count to see the number of events based on each country
+<img width="1465" alt="image" src="https://github.com/user-attachments/assets/9e00093f-8386-43a6-b2c3-29e8b7083d32">
+
+I saved the map and named it 'FailedRDP World Map'.
+It's currently 1AM, and most of the attempts (237 attempts) are coming from the Netherlands. I will leave it running and come back tomorrow to see the progress.
+
+I came back 17 hours later and I was surprised with my findings. Earlier I didn't have any attempts from Russia but I now had 17,000 failed RDP attempts from Russia, and 735 from the US, and Netherlands was still at 237 failed attempts.
+<img width="1033" alt="image" src="https://github.com/user-attachments/assets/5adba052-48dd-4380-bd1b-d0440e2134ff">
+
+I went to Microsoft defender and saw attempted but failed dictionary attacks
+<img width="1198" alt="image" src="https://github.com/user-attachments/assets/2d8513b1-b691-4d10-9288-5de521b42ef3">
+
+
+Conclusion: I loved doing this project. At first I looked at the comments of the tutorial since the video is 2yrs old, and a lot of them were complaining how it was almost impossible to do this project, but I also so a few that stated how they were able to figure it out so I decided to take on the task. I encountered so many problems, which forced me to practice my problem-solving skills. It was frustrating trying to figure out some stuff but it felt so good after I finally figured out the solution to a problem.
 
 
 
